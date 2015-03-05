@@ -28,6 +28,7 @@ import com.openbravo.pos.forms.AppView;
 import com.openbravo.pos.forms.AppLocal;
 import com.openbravo.format.Formats;
 import com.openbravo.pos.customers.CustomerInfoExt;
+import com.openbravo.pos.forms.DataLogicSales;
 import com.openbravo.pos.forms.DataLogicSystem;
 import java.awt.ComponentOrientation;
 import java.util.HashMap;
@@ -50,6 +51,7 @@ public abstract class JPaymentSelect extends javax.swing.JDialog
     private double m_dTotal; 
     private CustomerInfoExt customerext;
     private DataLogicSystem dlSystem;
+    private DataLogicSales dlSales;
     
     private Map<String, JPaymentInterface> payments = new HashMap<String, JPaymentInterface>();
     private String m_sTransactionID;
@@ -75,6 +77,7 @@ public abstract class JPaymentSelect extends javax.swing.JDialog
     public void init(AppView app) {
         this.app = app;
         dlSystem = (DataLogicSystem) app.getBean("com.openbravo.pos.forms.DataLogicSystem");
+        dlSales = (DataLogicSales) app.getBean("com.openbravo.pos.forms.DataLogicSales");
         printselected = true;
     }
     
@@ -207,7 +210,7 @@ public abstract class JPaymentSelect extends javax.swing.JDialog
         
     public class JPaymentDebtCreator implements JPaymentCreator {
         public JPaymentInterface createJPayment() {
-            return new JPaymentDebt(JPaymentSelect.this);
+            return new JPaymentDebt(JPaymentSelect.this, dlSales);
         }
         public String getKey() { return "payment.debt"; }
         public String getLabelKey() { return "tab.debt"; }
@@ -259,7 +262,7 @@ public abstract class JPaymentSelect extends javax.swing.JDialog
         m_jRemaininglEuros.setText(Formats.CURRENCY.formatValue(new Double(m_dTotal - m_aPaymentInfo.getTotal())));
         m_jButtonRemove.setEnabled(!m_aPaymentInfo.isEmpty());
         m_jTabPayment.setSelectedIndex(0); // selecciono el primero
-        ((JPaymentInterface) m_jTabPayment.getSelectedComponent()).activate(customerext, m_dTotal - m_aPaymentInfo.getTotal(), m_sTransactionID);
+        ((JPaymentInterface) m_jTabPayment.getSelectedComponent()).activate(m_aPaymentInfo, customerext, m_dTotal - m_aPaymentInfo.getTotal(), m_sTransactionID);
     }
     
     protected static Window getWindow(Component parent) {
@@ -436,7 +439,7 @@ public abstract class JPaymentSelect extends javax.swing.JDialog
     private void m_jTabPaymentStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_m_jTabPaymentStateChanged
 
         if (m_jTabPayment.getSelectedComponent() != null) {
-            ((JPaymentInterface) m_jTabPayment.getSelectedComponent()).activate(customerext, m_dTotal - m_aPaymentInfo.getTotal(), m_sTransactionID);
+            ((JPaymentInterface) m_jTabPayment.getSelectedComponent()).activate(m_aPaymentInfo, customerext, m_dTotal - m_aPaymentInfo.getTotal(), m_sTransactionID);
         }
         
     }//GEN-LAST:event_m_jTabPaymentStateChanged
