@@ -62,6 +62,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.print.PrintService;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -838,15 +840,18 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
 
             // Totals() Igual;
             } else if (cTrans == ' ' || cTrans == '=') {
-                if (m_oTicket.getLinesCount() > 0) {
-                    
-                    if (closeTicket(m_oTicket, m_oTicketExt)) {
-                        // Ends edition of current receipt
-                        m_ticketsbag.deleteTicket();  
-                    } else {
-                        // repaint current ticket
-                        refreshTicket();
-                    }
+                if (m_oTicket.getLinesCount() > 0) {                    
+                    try {
+                        if (closeTicket(m_oTicket, m_oTicketExt)) {
+                            // Ends edition of current receipt
+                            m_ticketsbag.deleteTicket();
+                        } else {
+                            // repaint current ticket
+                            refreshTicket();
+                        }
+                    } catch (BasicException eData) {
+                        new MessageInf(eData).show(this);
+                    }                
                 } else {
                     Toolkit.getDefaultToolkit().beep();
                 }
@@ -854,7 +859,7 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
         }
     }
     
-    private boolean closeTicket(TicketInfo ticket, Object ticketext) {
+    private boolean closeTicket(TicketInfo ticket, Object ticketext) throws BasicException {
     
         boolean resultok = false;
         
@@ -881,8 +886,8 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
 
                     paymentdialog.setTransactionID(ticket.getTransactionID());
 
-                    if (paymentdialog.showDialog(ticket.getTotal(), ticket.getCustomer())) {
-
+                   if (paymentdialog.showDialog(ticket.getTotal(), dlSales.loadCustomerExt(ticket.getCustomer().getId()))) {
+                       
                         // assign the payments selected and calculate taxes.         
                         ticket.setPayments(paymentdialog.getSelectedPayments());
 
@@ -1657,14 +1662,18 @@ public abstract class JPanelTicket extends JPanel implements JPanelView, BeanFac
 
         if (m_oTicket.getLinesCount() > 0) {
             ReceiptSplit splitdialog = ReceiptSplit.getDialog(this, dlSystem.getResourceAsXML("Ticket.Line"), dlSales, dlCustomers, taxeslogic);
-            
+
             TicketInfo ticket1 = m_oTicket.copyTicket();
             TicketInfo ticket2 = new TicketInfo();
             ticket2.setCustomer(m_oTicket.getCustomer());
-            
+
             if (splitdialog.showDialog(ticket1, ticket2, m_oTicketExt)) {
-                if (closeTicket(ticket2, m_oTicketExt)) { // already checked  that number of lines > 0                            
-                    setActiveTicket(ticket1, m_oTicketExt);// set result ticket
+                try {
+                    if (closeTicket(ticket2, m_oTicketExt)) { // already checked  that number of lines > 0
+                        setActiveTicket(ticket1, m_oTicketExt);// set result ticket
+                    }
+                } catch (BasicException eData) {
+                    new MessageInf(eData).show(this);
                 }
             }
         }

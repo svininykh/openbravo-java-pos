@@ -412,6 +412,7 @@ public class DataLogicSales extends BeanFactoryDataSingle {
 
                     if ("debt".equals(p.getName()) || "debtpaid".equals(p.getName())) {
 
+                        ticket.setCustomer(loadCustomerExt(ticket.getCustomer().getId()));
                         // udate customer fields...
                         ticket.getCustomer().updateCurDebt(p.getTotal(), ticket.getDate());
 
@@ -421,8 +422,8 @@ public class DataLogicSales extends BeanFactoryDataSingle {
                             setTimestamp(2, ticket.getCustomer().getCurdate());
                             setString(3, ticket.getCustomer().getId());
                         }});
+                            }
                     }
-                }
 
                 SentenceExec taxlinesinsert = new PreparedSentence(s
                         , "INSERT INTO TAXLINES (ID, RECEIPT, TAXID, BASE, AMOUNT)  VALUES (?, ?, ?, ?, ?)"
@@ -474,6 +475,8 @@ public class DataLogicSales extends BeanFactoryDataSingle {
                 for (PaymentInfo p : ticket.getPayments()) {
                     if ("debt".equals(p.getName()) || "debtpaid".equals(p.getName())) {
 
+                        ticket.setCustomer(loadCustomerExt(ticket.getCustomer().getId()));
+                        
                         // udate customer fields...
                         ticket.getCustomer().updateCurDebt(-p.getTotal(), ticket.getDate());
 
